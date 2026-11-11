@@ -33,7 +33,19 @@ app.config.from_object(Config)
 # Ensure upload directory exists
 os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
 
+# When running on Vercel serverless, ensure database is initialized & seeded in /tmp
+if os.environ.get("VERCEL"):
+    if not Config.DATABASE_PATH.exists():
+        try:
+            from seed import seed_database
+            seed_database()
+        except Exception as e:
+            print(f"[Vercel Auto-Seed Error]: {e}")
+
 # Explicit fallback static file serving
+@app.route('/static/<path:filename>', endpoint='custom_static_serve')
+def custom_static_serve(filename):
+    return send_from_directory(app.static_folder, filename) # Explicit fallback static file serving
 @app.route('/static/<path:filename>', endpoint='custom_static_serve')
 def custom_static_serve(filename):
     return send_from_directory(app.static_folder, filename)
