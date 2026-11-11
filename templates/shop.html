@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+{% block title %}Shop Teddy Bears, Plushies &amp; Cute Gifts | HUGNESTLE{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Shop Banner -->
+  <div style="background: linear-gradient(135deg, #FCE7EC 0%, #FFFDF7 100%); border-radius: var(--radius-lg); padding: 36px 30px; margin: 30px 0 20px; border: 1.5px solid var(--color-pink-100); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+    <div>
+      <span class="badge-tag" style="position: static; margin-bottom: 8px; display: inline-block;">All Collections</span>
+      <h1 style="font-size: 2.2rem; font-weight: 900; color: var(--color-text-main); margin-bottom: 6px;">
+        Find Your Perfect Hug Companion 🧸
+      </h1>
+      <p style="color: var(--color-text-muted); font-size: 1rem;">
+        Explore our handcrafted selection of cuddly bears, squishy animals, and lovely gift hampers.
+      </p>
+    </div>
+    <div style="background: #FFF; padding: 10px 18px; border-radius: var(--radius-full); border: 1px solid var(--color-pink-200); font-size: 0.88rem; font-weight: 700; color: var(--color-pink-700);">
+      🎀 100% Cotton • Safe For All Ages
+    </div>
+  </div>
+
+  <div class="shop-layout">
+    <!-- Filter Sidebar -->
+    <aside class="filter-sidebar">
+      <form action="{{ url_for('shop') }}" method="GET" id="filterForm">
+        <div class="filter-title">
+          <span>Filters</span>
+          <a href="{{ url_for('shop') }}" style="font-size: 0.8rem; color: var(--color-pink-600); font-weight: 700;">Reset All</a>
+        </div>
+
+        <!-- Search Keyword -->
+        <div class="filter-group">
+          <label class="filter-label" for="filterSearch">Search Keyword</label>
+          <input type="text" id="filterSearch" name="q" value="{{ search_query }}" placeholder="e.g. Caramel, Panda..." class="form-control" style="border-radius: var(--radius-sm); padding: 8px 12px; font-size: 0.9rem;">
+        </div>
+
+        <!-- Category Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Categories</label>
+          <ul class="filter-categories-list">
+            <li>
+              <a href="{{ url_for('shop', q=search_query, in_stock=('1' if in_stock_only else ''), sort=sort_by) }}" class="filter-cat-link {% if not selected_category %}active{% endif %}">
+                <span>All Categories</span>
+                <span>({{ products|length }})</span>
+              </a>
+            </li>
+            {% for cat in categories %}
+              <li>
+                <a href="{{ url_for('shop', cat=cat.slug, q=search_query, in_stock=('1' if in_stock_only else ''), sort=sort_by) }}" class="filter-cat-link {% if selected_category == cat.slug %}active{% endif %}">
+                  <span>{{ cat.icon }} {{ cat.name }}</span>
+                </a>
+              </li>
+            {% endfor %}
+          </ul>
+          <input type="hidden" name="cat" value="{{ selected_category }}">
+        </div>
+
+        <!-- In-Stock Only Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Availability</label>
+          <label class="filter-checkbox-label">
+            <input type="checkbox" name="in_stock" value="1" {% if in_stock_only %}checked{% endif %} onchange="document.getElementById('filterForm').submit()">
+            <span>In-Stock Only</span>
+          </label>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Price Range (₹)</label>
+          <div class="filter-price-inputs">
+            <input type="number" name="min_price" placeholder="Min" value="{{ min_price if min_price is not none else '' }}">
+            <span>-</span>
+            <input type="number" name="max_price" placeholder="Max" value="{{ max_price if max_price is not none else '' }}">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-cute-primary" style="width: 100%; padding: 10px; font-size: 0.9rem; margin-top: 10px;">
+          Apply Filters
+        </button>
+      </form>
+    </aside>
+
+    <!-- Main Products Listing -->
+    <main>
+      <!-- Top Bar: Results Count & Sort Dropdown -->
+      <div class="shop-top-bar">
+        <div style="font-size: 0.95rem; font-weight: 700; color: var(--color-text-main);">
+          Showing <strong>{{ products|length }}</strong> plushies
+          {% if search_query %} for <span style="color: var(--color-pink-600);">"{{ search_query }}"</span>{% endif %}
+        </div>
+
+        <div class="shop-sort">
+          <label for="sortSelect" style="font-size: 0.85rem; font-weight: 700; color: var(--color-text-muted); margin-right: 8px;">Sort by:</label>
+          <select id="sortSelect" onchange="
+            const form = document.getElementById('filterForm');
+            let input = form.querySelector('input[name=sort]');
+            if (!input) {
+              input = document.createElement('input');
+              input.type = 'hidden';
+              input.name = 'sort';
+              form.appendChild(input);
+            }
+            input.value = this.value;
+            form.submit();
+          ">
+            <option value="featured" {% if sort_by == 'featured' %}selected{% endif %}>Featured &amp; Bestselling</option>
+            <option value="price_asc" {% if sort_by == 'price_asc' %}selected{% endif %}>Price: Low to High</option>
+            <option value="price_desc" {% if sort_by == 'price_desc' %}selected{% endif %}>Price: High to Low</option>
+            <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Newest Arrivals</option>
+            <option value="popular" {% if sort_by == 'popular' %}selected{% endif %}>Most Popular</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Products Grid -->
+      {% if products %}
+        <div class="products-grid">
+          {% for product in products %}
+            <div class="product-card">
+              <div class="product-thumb-wrap">
+                {% if product.tag %}
+                  <span class="badge-tag">{{ product.tag }}</span>
+                {% endif %}
+
+                {% if product.stock == 0 %}
+                  <span class="badge-stock badge-out-of-stock">● Out of Stock</span>
+                {% elif product.stock <= 5 %}
+                  <span class="badge-stock badge-low-stock">● Only {{ product.stock }} Left</span>
+                {% else %}
+                  <span class="badge-stock badge-in-stock">● In Stock</span>
+                {% endif %}
+
+                <a href="{{ url_for('product_detail', slug=product.slug) }}">
+                  <img src="{{ product.main_image }}" alt="{{ product.name }}">
+                </a>
+              </div>
+
+              <div class="product-body">
+                <div class="product-cat">{{ product.category_name or 'Plushie' }}</div>
+                <h3 class="product-title">
+                  <a href="{{ url_for('product_detail', slug=product.slug) }}">{{ product.name }}</a>
+                </h3>
+
+                <div class="product-rating">
+                  <span class="rating-stars">★★★★★</span>
+                  <span class="rating-count">({{ product.review_count }})</span>
+                </div>
+
+                <div class="product-footer">
+                  <div class="product-price-box">
+                    <span class="product-price">₹{{ "%.2f"|format(product.price) }}</span>
+                    {% if product.original_price and product.original_price > product.price %}
+                      <span class="product-original-price">₹{{ "%.2f"|format(product.original_price) }}</span>
+                    {% endif %}
+                  </div>
+
+                  {% if product.stock > 0 %}
+                    <button class="btn-add-cart" onclick="addToCart({
+                      id: {{ product.id }},
+                      name: '{{ product.name|replace("'", "\\'") }}',
+                      slug: '{{ product.slug }}',
+                      price: {{ product.price }},
+                      main_image: '{{ product.main_image }}',
+                      stock: {{ product.stock }}
+                    })">
+                      <span>+</span> Add to Bag
+                    </button>
+                  {% else %}
+                    <button class="btn-add-cart" disabled title="Currently out of stock">
+                      Out of Stock
+                    </button>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="background: #FFF; border: 1.5px dashed var(--color-pink-200); border-radius: var(--radius-lg); padding: 60px 20px; text-align: center;">
+          <div style="font-size: 3.5rem; margin-bottom: 16px;">🔍</div>
+          <h3 style="font-weight: 800; margin-bottom: 8px;">No plushies found</h3>
+          <p style="color: var(--color-text-muted); font-size: 0.95rem; margin-bottom: 24px;">
+            We couldn't find any cute items matching your selected criteria. Try adjusting or resetting your search filters!
+          </p>
+          <a href="{{ url_for('shop') }}" class="btn-cute-primary">View All Plushies</a>
+        </div>
+      {% endif %}
+    </main>
+  </div>
+</div>
+{% endblock %}

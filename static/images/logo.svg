@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" fill="none">
+  <defs>
+    <linearGradient id="logoBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF0F5" />
+      <stop offset="100%" stop-color="#FCE4EC" />
+    </linearGradient>
+    <linearGradient id="bearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#E89AA8" />
+      <stop offset="100%" stop-color="#D87093" />
+    </linearGradient>
+    <filter id="softGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#D87093" flood-opacity="0.15" />
+    </filter>
+  </defs>
+  
+  <!-- Bear Icon Badge -->
+  <g transform="translate(10, 8)" filter="url(#softGlow)">
+    <circle cx="32" cy="32" r="30" fill="url(#logoBg)" stroke="#F4A6B7" stroke-width="2" />
+    
+    <!-- Bear Ears -->
+    <circle cx="16" cy="18" r="8" fill="url(#bearGrad)" />
+    <circle cx="16" cy="18" r="4.5" fill="#FFF0F5" />
+    <circle cx="48" cy="18" r="8" fill="url(#bearGrad)" />
+    <circle cx="48" cy="18" r="4.5" fill="#FFF0F5" />
+    
+    <!-- Bear Head -->
+    <ellipse cx="32" cy="33" rx="20" ry="18" fill="url(#bearGrad)" />
+    
+    <!-- Muzzle -->
+    <ellipse cx="32" cy="36" rx="9" ry="7" fill="#FFFDF7" />
+    <!-- Nose -->
+    <ellipse cx="32" cy="33.5" rx="3.5" ry="2.5" fill="#4A3E3D" />
+    <path d="M32 36 v 3 m-3 -1 q 3 2 6 0" stroke="#4A3E3D" stroke-width="1.2" stroke-linecap="round" fill="none" />
+    
+    <!-- Eyes -->
+    <circle cx="24" cy="28" r="2.5" fill="#3E2723" />
+    <circle cx="23.2" cy="27.2" r="0.9" fill="#FFFFFF" />
+    <circle cx="40" cy="28" r="2.5" fill="#3E2723" />
+    <circle cx="39.2" cy="27.2" r="0.9" fill="#FFFFFF" />
+    
+    <!-- Rosy Cheeks -->
+    <ellipse cx="21" cy="34" rx="3" ry="1.8" fill="#FF8DA1" opacity="0.6" />
+    <ellipse cx="43" cy="34" rx="3" ry="1.8" fill="#FF8DA1" opacity="0.6" />
+    
+    <!-- Cute Bow Tie -->
+    <polygon points="32,45 27,42 27,48" fill="#FF69B4" />
+    <polygon points="32,45 37,42 37,48" fill="#FF69B4" />
+    <circle cx="32" cy="45" r="2" fill="#D81B60" />
+  </g>
+  
+  <!-- Brand Text -->
+  <text x="82" y="44" font-family="'Nunito', 'Quicksand', 'Segoe UI', sans-serif" font-weight="900" font-size="28" fill="#3E2723" letter-spacing="1.5">
+    HUG<tspan fill="#E57399">NESTLE</tspan>
+  </text>
+  <text x="83" y="60" font-family="'Nunito', 'Segoe UI', sans-serif" font-weight="600" font-size="11" fill="#9C7A82" letter-spacing="2.5">
+    PLUSHIES &amp; CUTE GIFTS
+  </text>
+  
+  <!-- Cute Floating Sparkles -->
+  <path d="M285 24 l2 5 l5 2 l-5 2 l-2 5 l-2 -5 l-5 -2 l5 -2 z" fill="#F4A6B7" opacity="0.8"/>
+  <circle cx="270" cy="45" r="2" fill="#F8BBD0" />
+  <circle cx="295" cy="40" r="1.5" fill="#E57399" />
+</svg>

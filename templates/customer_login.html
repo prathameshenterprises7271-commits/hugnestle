@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In / Register | HUGNESTLE{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 50px 24px 90px; max-width: 520px;">
+  <div style="background: #FFF; border: 1.5px solid var(--color-pink-100); border-radius: var(--radius-lg); padding: 36px 30px; box-shadow: var(--shadow-md);">
+    
+    <div style="text-align: center; margin-bottom: 24px;">
+      <div style="font-size: 2.8rem; margin-bottom: 8px;">🧸</div>
+      <h2 style="font-size: 1.8rem; font-weight: 900; color: var(--color-text-main);">
+        Welcome to Hugnestle
+      </h2>
+      <p style="font-size: 0.9rem; color: var(--color-text-muted);">
+        Sign in to view your order history and track deliveries.
+      </p>
+    </div>
+
+    <!-- Tab Buttons -->
+    <div style="display: flex; background: var(--color-cream-200); border-radius: var(--radius-full); padding: 4px; margin-bottom: 24px;">
+      <button type="button" id="tabBtnLogin" onclick="switchTab('login')" style="flex: 1; padding: 10px; border-radius: var(--radius-full); border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; {% if active_tab != 'register' %}background: var(--color-pink-500); color: #fff; box-shadow: var(--shadow-sm);{% else %}background: transparent; color: var(--color-text-muted);{% endif %}">
+        Sign In
+      </button>
+      <button type="button" id="tabBtnRegister" onclick="switchTab('register')" style="flex: 1; padding: 10px; border-radius: var(--radius-full); border: none; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; {% if active_tab == 'register' %}background: var(--color-pink-500); color: #fff; box-shadow: var(--shadow-sm);{% else %}background: transparent; color: var(--color-text-muted);{% endif %}">
+        Create Account
+      </button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="formLogin" method="POST" action="{{ url_for('customer_login', next=next) }}" style="display: {% if active_tab == 'register' %}none{% else %}block{% endif %};">
+      <input type="hidden" name="action" value="login">
+
+      <div class="form-group">
+        <label class="form-label" for="loginEmail">Email Address</label>
+        <input type="email" id="loginEmail" name="email" class="form-control" required placeholder="you@example.com">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="loginPassword">Password</label>
+        <input type="password" id="loginPassword" name="password" class="form-control" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn-cute-primary" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 8px;">
+        Sign In ➔
+      </button>
+
+      <!-- Demo Fill Button -->
+      <div style="margin-top: 20px; padding: 12px; background: var(--color-cream-200); border-radius: 10px; text-align: center;">
+        <span style="font-size: 0.8rem; color: var(--color-text-muted);">Quick Demo Login:</span>
+        <button type="button" onclick="
+          document.getElementById('loginEmail').value = 'priya@example.com';
+          document.getElementById('loginPassword').value = 'password123';
+        " style="background: none; border: none; color: var(--color-pink-600); font-weight: 800; font-size: 0.82rem; cursor: pointer; text-decoration: underline; margin-left: 6px;">
+          Fill Priya's Account
+        </button>
+      </div>
+    </form>
+
+    <!-- Register Form -->
+    <form id="formRegister" method="POST" action="{{ url_for('customer_login', next=next) }}" style="display: {% if active_tab == 'register' %}block{% endif %}{% if active_tab != 'register' %}none{% endif %};">
+      <input type="hidden" name="action" value="register">
+
+      <div class="form-group">
+        <label class="form-label" for="regName">Full Name *</label>
+        <input type="text" id="regName" name="name" class="form-control" required placeholder="Priya Sharma">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="regEmail">Email Address *</label>
+          <input type="email" id="regEmail" name="email" class="form-control" required placeholder="priya@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regPhone">Phone Number *</label>
+          <input type="tel" id="regPhone" name="phone" class="form-control" required placeholder="9876543210">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="regPassword">Create Password *</label>
+        <input type="password" id="regPassword" name="password" class="form-control" required placeholder="At least 6 characters">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="regAddress">Delivery Address</label>
+        <input type="text" id="regAddress" name="address" class="form-control" placeholder="Flat / House / Street">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label" for="regCity">City</label>
+          <input type="text" id="regCity" name="city" class="form-control" placeholder="Bengaluru">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="regPincode">PIN Code</label>
+          <input type="text" id="regPincode" name="pincode" class="form-control" placeholder="560038">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-cute-primary" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px;">
+        Create Account &amp; Save 🧸
+      </button>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function switchTab(tab) {
+  const formLogin = document.getElementById('formLogin');
+  const formRegister = document.getElementById('formRegister');
+  const btnLogin = document.getElementById('tabBtnLogin');
+  const btnReg = document.getElementById('tabBtnRegister');
+
+  if (tab === 'login') {
+    formLogin.style.display = 'block';
+    formRegister.style.display = 'none';
+    btnLogin.style.background = 'var(--color-pink-500)';
+    btnLogin.style.color = '#fff';
+    btnReg.style.background = 'transparent';
+    btnReg.style.color = 'var(--color-text-muted)';
+  } else {
+    formLogin.style.display = 'none';
+    formRegister.style.display = 'block';
+    btnReg.style.background = 'var(--color-pink-500)';
+    btnReg.style.color = '#fff';
+    btnLogin.style.background = 'transparent';
+    btnLogin.style.color = 'var(--color-text-muted)';
+  }
+}
+</script>
+{% endblock %}

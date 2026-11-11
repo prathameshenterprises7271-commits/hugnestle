@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Website Owner Login | HUGNESTLE Admin</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+</head>
+<body style="background: linear-gradient(135deg, #FFF5F7 0%, #F5EEDC 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;">
+
+  <div style="background: #FFFFFF; border: 1.5px solid var(--color-pink-200); border-radius: var(--radius-lg); width: 100%; max-width: 440px; padding: 40px 32px; box-shadow: var(--shadow-lg); text-align: center;">
+    
+    <!-- Logo -->
+    <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="HUGNESTLE" style="height: 52px; margin: 0 auto 16px;">
+    
+    <div style="display: inline-block; background: #FCE7EC; color: #D81B60; font-weight: 800; font-size: 0.76rem; padding: 3px 12px; border-radius: 9999px; text-transform: uppercase; margin-bottom: 8px;">
+      🔒 Restricted Store Owner Portal
+    </div>
+
+    <h2 style="font-size: 1.5rem; font-weight: 900; color: #1A202C; margin-bottom: 6px;">
+      Admin Access
+    </h2>
+    <p style="font-size: 0.88rem; color: #718096; margin-bottom: 24px;">
+      Manage product inventory, direct photo uploads, UPI orders, and stock updates.
+    </p>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, msg in messages %}
+          <div style="padding: 10px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 700; margin-bottom: 16px; text-align: left;
+            {% if category == 'danger' %}background: #FDE8E8; color: #9B1C1C;
+            {% else %}background: #DEF7EC; color: #03543F;{% endif %}">
+            {{ msg }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('admin_login') }}" style="text-align: left;">
+      <div class="form-group">
+        <label class="form-label" for="adminUsername">Username or Admin Email</label>
+        <input type="text" id="adminUsername" name="username" class="form-control" required placeholder="admin" autofocus>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="adminPassword">Password</label>
+        <input type="password" id="adminPassword" name="password" class="form-control" required placeholder="••••••••">
+      </div>
+
+      <button type="submit" class="btn-cute-primary" style="width: 100%; padding: 12px; font-size: 1rem; margin-top: 10px;">
+        Sign In to Admin Panel ➔
+      </button>
+
+      <!-- Quick test helper -->
+      <div style="margin-top: 24px; padding: 12px 14px; background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px; font-size: 0.82rem; color: #64748B;">
+        <div style="font-weight: 700; color: #334155; margin-bottom: 4px;">Default Owner Credentials:</div>
+        User: <code>admin</code> | Pass: <code>hugnestle@admin2026</code><br>
+        <button type="button" onclick="
+          document.getElementById('adminUsername').value = 'admin';
+          document.getElementById('adminPassword').value = 'hugnestle@admin2026';
+        " style="background: none; border: none; color: #D81B60; font-weight: 800; cursor: pointer; text-decoration: underline; padding: 0; margin-top: 6px;">
+          Auto-Fill Credentials
+        </button>
+      </div>
+
+      <div style="text-align: center; margin-top: 20px;">
+        <a href="{{ url_for('index') }}" style="font-size: 0.85rem; color: var(--color-pink-600); font-weight: 700;">
+          ← Back to Hugnestle Store
+        </a>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>

@@ -1,0 +1,169 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}Dashboard | HUGNESTLE Admin{% endblock %}
+{% block page_title %}Store Owner Dashboard{% endblock %}
+
+{% block admin_content %}
+<!-- Stats Overview -->
+<div class="admin-stats-grid">
+  <!-- Total Orders -->
+  <div class="admin-stat-card">
+    <div class="stat-icon-wrap stat-icon-blue">📦</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Orders</div>
+      <div class="stat-value">{{ total_orders }}</div>
+    </div>
+  </div>
+
+  <!-- Total Revenue -->
+  <div class="admin-stat-card">
+    <div class="stat-icon-wrap stat-icon-green">₹</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Revenue</div>
+      <div class="stat-value">₹{{ "{:,.2f}".format(total_revenue) }}</div>
+    </div>
+  </div>
+
+  <!-- Total Products -->
+  <div class="admin-stat-card">
+    <div class="stat-icon-wrap stat-icon-pink">🧸</div>
+    <div class="stat-info">
+      <div class="stat-label">Total Products</div>
+      <div class="stat-value">{{ total_products }}</div>
+    </div>
+  </div>
+
+  <!-- Total Available Stock -->
+  <div class="admin-stat-card">
+    <div class="stat-icon-wrap stat-icon-amber">📊</div>
+    <div class="stat-info">
+      <div class="stat-label">Available Stock</div>
+      <div class="stat-value">{{ total_stock }} units</div>
+    </div>
+  </div>
+</div>
+
+<!-- Low Stock & Out of Stock Alert Section -->
+{% if low_stock_products %}
+  <div class="admin-card" style="border-left: 4px solid #E53E3E; background: #FFFDFD;">
+    <div class="admin-card-header">
+      <div>
+        <h3 class="admin-card-title" style="color: #9B1C1C; display: flex; align-items: center; gap: 8px;">
+          <span>⚠️</span> Inventory Stock Alerts ({{ low_stock_products|length }})
+        </h3>
+        <p style="font-size: 0.85rem; color: #718096; margin-top: 2px;">
+          Products with 0 units automatically show "Out of Stock" to customers on the storefront.
+        </p>
+      </div>
+      <a href="{{ url_for('admin_products') }}" class="btn-cute-secondary" style="font-size: 0.82rem; padding: 6px 14px;">
+        Manage All Stock ➔
+      </a>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px;">
+      {% for lp in low_stock_products %}
+        <div style="background: #FFF; border: 1px solid #FED7D7; border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <img src="{{ lp.main_image }}" alt="{{ lp.name }}" style="width: 44px; height: 44px; object-fit: contain; background: #FFFDF7; border-radius: 6px; border: 1px solid #FCE7EC;">
+            <div>
+              <div style="font-weight: 800; font-size: 0.88rem; color: #1A202C;">{{ lp.name }}</div>
+              {% if lp.stock == 0 %}
+                <span class="status-pill status-out-of-stock" style="font-size: 0.72rem;">0 (Out of Stock)</span>
+              {% else %}
+                <span class="status-pill status-low-stock" style="font-size: 0.72rem;">Only {{ lp.stock }} left</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Quick Restock Button -->
+          <button class="btn-cute-primary" onclick="adjustStock({{ lp.id }}, 10)" style="padding: 6px 10px; font-size: 0.78rem; border-radius: 8px;" title="Add 10 units to stock">
+            +10 Restock
+          </button>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- Recent Orders Section -->
+<div class="admin-card">
+  <div class="admin-card-header">
+    <div>
+      <h3 class="admin-card-title">Recent Customer Orders</h3>
+      <p style="font-size: 0.85rem; color: var(--admin-muted); margin-top: 2px;">
+        All orders verified via online UPI payment.
+      </p>
+    </div>
+    <a href="{{ url_for('admin_orders') }}" class="btn-cute-secondary" style="font-size: 0.82rem; padding: 6px 14px;">
+      View All Orders ({{ total_orders }}) ➔
+    </a>
+  </div>
+
+  {% if recent_orders %}
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Phone (SMS)</th>
+            <th>Amount Paid</th>
+            <th>Payment</th>
+            <th>Fulfillment Status</th>
+            <th>Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for ro in recent_orders %}
+            <tr>
+              <td>
+                <strong style="color: var(--color-pink-600);">#{{ ro.order_number }}</strong>
+              </td>
+              <td>
+                <div style="font-weight: 700;">{{ ro.customer_name }}</div>
+                <div style="font-size: 0.78rem; color: var(--admin-muted);">{{ ro.city }}, {{ ro.state }}</div>
+              </td>
+              <td>{{ ro.customer_phone }}</td>
+              <td>
+                <strong style="color: #1A202C;">₹{{ "%.2f"|format(ro.total_amount) }}</strong>
+              </td>
+              <td>
+                <span class="status-pill status-in-stock" style="font-size: 0.75rem;">
+                  ✓ {{ ro.payment_method }}
+                </span>
+              </td>
+              <td>
+                {% set st = ro.fulfillment_status %}
+                {% if st == 'CONFIRMED' %}
+                  <span class="status-pill status-confirmed">Confirmed</span>
+                {% elif st == 'PACKING' %}
+                  <span class="status-pill status-packing">Packing</span>
+                {% elif st == 'DISPATCHED' %}
+                  <span class="status-pill status-dispatched">Dispatched</span>
+                {% elif st == 'OUT_FOR_DELIVERY' %}
+                  <span class="status-pill status-low-stock">Out for Delivery</span>
+                {% elif st == 'DELIVERED' %}
+                  <span class="status-pill status-delivered">Delivered</span>
+                {% endif %}
+              </td>
+              <td style="font-size: 0.8rem; color: var(--admin-muted);">
+                {{ ro.created_at[:10] }}
+              </td>
+              <td>
+                <a href="{{ url_for('track_order', order=ro.order_number, phone=ro.customer_phone) }}" target="_blank" class="btn-cute-secondary" style="padding: 4px 10px; font-size: 0.76rem;">
+                  Track
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 40px 20px; color: var(--admin-muted);">
+      No customer orders placed yet. Orders will appear here automatically upon verified UPI payment.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}Track Your Hug Package | HUGNESTLE{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px 80px; max-width: 860px;">
+  <!-- Track Header -->
+  <div style="text-align: center; margin-bottom: 36px;">
+    <span class="badge-tag" style="position: static; display: inline-block; margin-bottom: 8px;">Real-Time Tracking</span>
+    <h1 style="font-size: 2.2rem; font-weight: 900; color: var(--color-text-main); margin-bottom: 8px;">
+      Where is My Hugnestle Package? 📦
+    </h1>
+    <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+      Enter your Order Number or phone number to see live courier progress and SMS notification updates.
+    </p>
+  </div>
+
+  <!-- Search Card -->
+  <div class="admin-card" style="margin-bottom: 36px;">
+    <form action="{{ url_for('track_order') }}" method="GET" style="display: flex; gap: 14px; flex-wrap: wrap;">
+      <div style="flex: 1.2; min-width: 220px;">
+        <label class="form-label" for="trackOrderInput">Order Number</label>
+        <input type="text" id="trackOrderInput" name="order" value="{{ searched_order }}" placeholder="e.g. HUG-202611-9284" class="form-control" required style="font-weight: 700;">
+      </div>
+      <div style="flex: 1; min-width: 180px;">
+        <label class="form-label" for="trackPhoneInput">Phone Number (Optional)</label>
+        <input type="tel" id="trackPhoneInput" name="phone" value="{{ searched_phone }}" placeholder="e.g. 9876543210" class="form-control">
+      </div>
+      <div style="align-self: flex-end;">
+        <button type="submit" class="btn-cute-primary" style="padding: 12px 24px; font-size: 0.95rem;">
+          Track Package ➔
+        </button>
+      </div>
+    </form>
+
+    {% if not order and not searched_order %}
+      <!-- Demo quick-track helper -->
+      <div style="margin-top: 14px; font-size: 0.82rem; color: var(--color-text-muted);">
+        💡 Want to test? Try sample order:
+        <a href="{{ url_for('track_order', order='HUG-202611-9284', phone='9876543210') }}" style="color: var(--color-pink-600); font-weight: 800; text-decoration: underline;">
+          #HUG-202611-9284
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  {% if searched_order and not order %}
+    <div style="background: #FFF; border: 1.5px dashed #FFCDD2; border-radius: var(--radius-lg); padding: 50px 20px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🔍</div>
+      <h3 style="font-weight: 800; color: var(--color-danger-text); margin-bottom: 8px;">Order Not Found</h3>
+      <p style="color: var(--color-text-muted); font-size: 0.95rem; max-width: 480px; margin: 0 auto 20px;">
+        We couldn't locate an order matching <strong>"{{ searched_order }}"</strong>. Please check your order confirmation email or SMS for the correct order number.
+      </p>
+      <a href="{{ url_for('track_order', order='HUG-202611-9284', phone='9876543210') }}" class="btn-cute-secondary">
+        Test with Demo Order #HUG-202611-9284
+      </a>
+    </div>
+  {% endif %}
+
+  {% if order %}
+    <!-- Order Tracking Result Card -->
+    <div class="admin-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding-bottom: 18px; border-bottom: 1px solid var(--color-pink-100); margin-bottom: 24px;">
+        <div>
+          <span style="font-size: 0.8rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase;">Tracking Order</span>
+          <h2 style="font-size: 1.6rem; font-weight: 900; color: var(--color-pink-600); margin: 2px 0;">
+            #{{ order.order_number }}
+          </h2>
+          <div style="font-size: 0.88rem; color: var(--color-text-muted);">
+            Customer: <strong>{{ order.customer_name }}</strong> • Placed on {{ order.created_at[:10] }}
+          </div>
+        </div>
+
+        <div style="text-align: right;">
+          {% set st = order.fulfillment_status %}
+          {% if st == 'CONFIRMED' %}
+            <span class="status-pill status-confirmed" style="font-size: 0.85rem; padding: 6px 14px;">● Order Confirmed</span>
+          {% elif st == 'PACKING' %}
+            <span class="status-pill status-packing" style="font-size: 0.85rem; padding: 6px 14px;">● Packing with Love</span>
+          {% elif st == 'DISPATCHED' %}
+            <span class="status-pill status-dispatched" style="font-size: 0.85rem; padding: 6px 14px;">● Dispatched</span>
+          {% elif st == 'OUT_FOR_DELIVERY' %}
+            <span class="status-pill status-low-stock" style="font-size: 0.85rem; padding: 6px 14px;">● Out for Delivery</span>
+          {% elif st == 'DELIVERED' %}
+            <span class="status-pill status-delivered" style="font-size: 0.85rem; padding: 6px 14px;">● Hug Delivered</span>
+          {% endif %}
+          <div style="font-size: 0.82rem; color: #2E7D32; font-weight: 800; margin-top: 4px;">
+            ✓ UPI Payment Verified
+          </div>
+        </div>
+      </div>
+
+      <!-- Visual Progress Timeline Stepper -->
+      {% set steps = [
+        ('CONFIRMED', 'Order Confirmed', '✨'),
+        ('PACKING', 'Packing with Ribbons', '🎀'),
+        ('DISPATCHED', 'Dispatched', '🚀'),
+        ('OUT_FOR_DELIVERY', 'Out for Delivery', '🚚'),
+        ('DELIVERED', 'Delivered', '🧸')
+      ] %}
+
+      {% set status_order = ['PENDING', 'CONFIRMED', 'PACKING', 'DISPATCHED', 'OUT_FOR_DELIVERY', 'DELIVERED'] %}
+      {% set current_idx = status_order.index(order.fulfillment_status) if order.fulfillment_status in status_order else 1 %}
+
+      <div class="tracking-stepper">
+        {% for step_key, step_title, step_icon in steps %}
+          {% set step_idx = status_order.index(step_key) %}
+          <div class="tracking-step {% if step_idx < current_idx %}completed{% elif step_idx == current_idx %}active{% endif %}">
+            <div class="step-node">{{ step_icon }}</div>
+            <div class="step-label">{{ step_title }}</div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Courier Details Info Box -->
+      <div style="background: var(--color-cream-200); border-radius: var(--radius-md); padding: 20px 24px; margin: 30px 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+        <div>
+          <div style="font-size: 0.76rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase;">Courier Partner</div>
+          <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-text-main); margin-top: 2px;">
+            {{ order.courier_name or 'BlueDart Express' }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.76rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase;">Tracking Number</div>
+          <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-pink-600); margin-top: 2px;">
+            {{ order.tracking_number or 'BD-HUG-' ~ order.order_number[-6:] }}
+          </div>
+        </div>
+        <div>
+          <div style="font-size: 0.76rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase;">Estimated Delivery</div>
+          <div style="font-weight: 800; font-size: 0.95rem; color: #2E7D32; margin-top: 2px;">
+            {{ order.estimated_delivery or 'Within 2-3 Business Days' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Customer SMS Notification History -->
+      <div style="margin: 30px 0;">
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+          <span>📱</span> SMS Notifications Sent to Customer Phone
+        </h3>
+
+        {% if sms_logs %}
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            {% for log in sms_logs %}
+              <div style="background: #F1F8E9; border-left: 4px solid #7CB342; border-radius: 8px; padding: 14px 18px;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #33691E; font-weight: 700; margin-bottom: 6px;">
+                  <span>To: +91 {{ log.phone }} ({{ log.status }})</span>
+                  <span>{{ log.created_at }}</span>
+                </div>
+                <div style="font-size: 0.88rem; color: #1B5E20; line-height: 1.45;">
+                  "{{ log.message }}"
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div style="font-size: 0.88rem; color: var(--color-text-muted); font-style: italic;">
+            No SMS logs recorded yet for this order.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Order Items Summary -->
+      <div>
+        <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--color-pink-100);">
+          Items in this Package
+        </h3>
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          {% for item in items %}
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 0;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="{{ item.product_image }}" alt="{{ item.product_name }}" style="width: 44px; height: 44px; object-fit: contain; background: #FFFDF7; border-radius: 6px; padding: 2px;">
+                <div>
+                  <div style="font-weight: 700; font-size: 0.9rem;">{{ item.product_name }}</div>
+                  <div style="font-size: 0.78rem; color: var(--color-text-muted);">Qty: {{ item.quantity }}</div>
+                </div>
+              </div>
+              <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-pink-600);">
+                ₹{{ "%.2f"|format(item.total) }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

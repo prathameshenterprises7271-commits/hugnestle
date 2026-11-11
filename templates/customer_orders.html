@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+
+{% block title %}My Orders &amp; Account | HUGNESTLE{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px 80px; max-width: 900px;">
+  <!-- Account Profile Header -->
+  <div style="background: linear-gradient(135deg, #FFF5F7, #FFFDF7); border: 1.5px solid var(--color-pink-100); border-radius: var(--radius-lg); padding: 28px 32px; margin-bottom: 36px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div style="width: 56px; height: 56px; background: var(--color-pink-500); color: #fff; border-radius: 9999px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 900;">
+        {{ user.name[0]|upper }}
+      </div>
+      <div>
+        <h2 style="font-size: 1.4rem; font-weight: 900; color: var(--color-text-main); margin-bottom: 2px;">
+          {{ user.name }}
+        </h2>
+        <div style="font-size: 0.88rem; color: var(--color-text-muted);">
+          {{ user.email }} • Phone: {{ user.phone or 'Not set' }}
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <a href="{{ url_for('customer_logout') }}" class="btn-cute-secondary" style="padding: 8px 18px; font-size: 0.88rem;">
+        Sign Out
+      </a>
+    </div>
+  </div>
+
+  <!-- Orders Heading -->
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <h3 style="font-size: 1.4rem; font-weight: 900; color: var(--color-text-main);">
+      Your Order History ({{ orders_with_items|length }})
+    </h3>
+    <a href="{{ url_for('shop') }}" class="btn-cute-primary" style="padding: 8px 18px; font-size: 0.88rem;">
+      + Order More Hugs
+    </a>
+  </div>
+
+  {% if orders_with_items %}
+    <div style="display: flex; flex-direction: column; gap: 24px;">
+      {% for entry in orders_with_items %}
+        {% set o = entry.order %}
+        {% set items = entry.order_items %}
+        <div class="admin-card" style="margin-bottom: 0;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; padding-bottom: 14px; border-bottom: 1px solid var(--color-pink-100); margin-bottom: 16px;">
+            <div>
+              <span style="font-size: 0.76rem; font-weight: 800; color: var(--color-text-muted); text-transform: uppercase;">Order Number</span>
+              <div style="font-size: 1.15rem; font-weight: 900; color: var(--color-pink-600);">#{{ o.order_number }}</div>
+              <div style="font-size: 0.8rem; color: var(--color-text-light);">Placed on {{ o.created_at[:10] }}</div>
+            </div>
+
+            <div style="text-align: right;">
+              <span class="status-pill status-confirmed" style="font-size: 0.8rem;">
+                ● {{ o.fulfillment_status }}
+              </span>
+              <div style="font-size: 0.8rem; color: #2E7D32; font-weight: 700; margin-top: 4px;">
+                ✓ UPI Payment Verified
+              </div>
+            </div>
+          </div>
+
+          <!-- Items list -->
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px;">
+            {% for item in items %}
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <img src="{{ item.product_image }}" alt="{{ item.product_name }}" style="width: 44px; height: 44px; object-fit: contain; background: #FFFDF7; border-radius: 6px; padding: 2px; border: 1px solid #FCE7EC;">
+                  <div>
+                    <div style="font-weight: 700; font-size: 0.92rem; color: #3E2723;">{{ item.product_name }}</div>
+                    <div style="font-size: 0.8rem; color: var(--color-text-muted);">Qty: {{ item.quantity }} × ₹{{ "%.2f"|format(item.price) }}</div>
+                  </div>
+                </div>
+                <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-text-main);">
+                  ₹{{ "%.2f"|format(item.total) }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+
+          <!-- Order Footer -->
+          <div style="display: flex; justify-content: space-between; align-items: center; padding-top: 14px; border-top: 1px dashed var(--color-pink-200); flex-wrap: wrap; gap: 12px;">
+            <div>
+              <span style="font-size: 0.85rem; color: var(--color-text-muted);">Total Paid: </span>
+              <span style="font-size: 1.15rem; font-weight: 900; color: var(--color-pink-600);">₹{{ "%.2f"|format(o.total_amount) }}</span>
+            </div>
+
+            <div>
+              <a href="{{ url_for('track_order', order=o.order_number, phone=o.customer_phone) }}" class="btn-cute-secondary" style="padding: 8px 18px; font-size: 0.85rem;">
+                Track Order Live 📦
+              </a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div style="background: #FFF; border: 1.5px dashed var(--color-pink-200); border-radius: var(--radius-lg); padding: 60px 20px; text-align: center;">
+      <div style="font-size: 3rem; margin-bottom: 12px;">🧸</div>
+      <h3 style="font-weight: 800; margin-bottom: 6px;">No orders found yet!</h3>
+      <p style="color: var(--color-text-muted); font-size: 0.92rem; margin-bottom: 20px;">You haven't ordered any cuddle companions yet. Explore our adorable collection today!</p>
+      <a href="{{ url_for('shop') }}" class="btn-cute-primary">Explore Plushies ➔</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

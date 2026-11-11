@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Confirmed! #{{ order.order_number }} | HUGNESTLE{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 50px 24px 90px; max-width: 780px;">
+  <div style="background: #FFF; border: 1.5px solid var(--color-pink-100); border-radius: var(--radius-lg); padding: 40px 32px; box-shadow: var(--shadow-lg); text-align: center;">
+    
+    <!-- Success Badge -->
+    <div style="width: 80px; height: 80px; background: #E8F5E9; border: 3px solid #A5D6A7; border-radius: 9999px; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; font-size: 2.5rem;">
+      ✨
+    </div>
+
+    <span class="status-pill status-in-stock" style="font-size: 0.85rem; padding: 6px 14px; margin-bottom: 12px;">
+      ● UPI Payment Verified &amp; Confirmed
+    </span>
+
+    <h1 style="font-size: 2.2rem; font-weight: 900; color: var(--color-text-main); margin-bottom: 8px;">
+      Yay! Your Hugs Are on Their Way ❤️
+    </h1>
+    <p style="color: var(--color-text-muted); font-size: 1rem; max-width: 520px; margin: 0 auto 24px;">
+      Thank you, <strong>{{ order.customer_name }}</strong>! We have received your payment via UPI and our cuddly packing team is preparing your package.
+    </p>
+
+    <!-- Order Header Info Box -->
+    <div style="background: var(--color-cream-200); border: 1px solid var(--color-pink-100); border-radius: var(--radius-md); padding: 18px 24px; margin-bottom: 30px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 16px; text-align: left;">
+      <div>
+        <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted);">Order Number</div>
+        <div style="font-size: 1.15rem; font-weight: 900; color: var(--color-pink-600);">#{{ order.order_number }}</div>
+      </div>
+      <div>
+        <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted);">Payment Method</div>
+        <div style="font-size: 1.05rem; font-weight: 800; color: #2E7D32;">UPI Verified</div>
+      </div>
+      <div>
+        <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted);">UPI Reference ID</div>
+        <div style="font-size: 0.95rem; font-weight: 700; color: var(--color-text-main);">{{ order.upi_txn_id or 'UPI-SUCCESS' }}</div>
+      </div>
+      <div>
+        <div style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; color: var(--color-text-muted);">Total Amount Paid</div>
+        <div style="font-size: 1.25rem; font-weight: 900; color: var(--color-text-main);">₹{{ "%.2f"|format(order.total_amount) }}</div>
+      </div>
+    </div>
+
+    <!-- Customer Mobile SMS Notification Box -->
+    <div style="margin-bottom: 30px; text-align: left;">
+      <div style="font-size: 0.9rem; font-weight: 800; color: var(--color-text-main); margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+        <span>📱</span> Customer SMS Notification Dispatched
+      </div>
+      <div style="background: #F1F8E9; border: 1.5px solid #C5E1A5; border-radius: 12px; padding: 16px 20px;">
+        <div style="font-size: 0.8rem; font-weight: 700; color: #33691E; margin-bottom: 6px;">
+          Sent to: <strong>+91 {{ order.customer_phone }}</strong> (Status: Delivered)
+        </div>
+        <p style="font-size: 0.9rem; color: #1B5E20; margin: 0; line-height: 1.5;">
+          {% if sms_log %}
+            "{{ sms_log.message }}"
+          {% else %}
+            "🧸 HUGNESTLE: Yay {{ order.customer_name }}! Your cute order #{{ order.order_number }} is CONFIRMED! Amount: ₹{{ '%.2f'|format(order.total_amount) }} paid via UPI. We're hand-packing your plushies with love."
+          {% endif %}
+        </p>
+      </div>
+    </div>
+
+    <!-- Ordered Items List -->
+    <div style="text-align: left; margin-bottom: 30px;">
+      <h3 style="font-size: 1.1rem; font-weight: 800; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1px solid var(--color-pink-100);">
+        Items in this Order
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for item in items %}
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed var(--color-pink-100);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <img src="{{ item.product_image }}" alt="{{ item.product_name }}" style="width: 50px; height: 50px; object-fit: contain; background: #FFFDF7; border-radius: 8px; border: 1px solid var(--color-pink-200); padding: 4px;">
+              <div>
+                <div style="font-weight: 700; font-size: 0.95rem;">{{ item.product_name }}</div>
+                <div style="font-size: 0.8rem; color: var(--color-text-muted);">Quantity: {{ item.quantity }} × ₹{{ "%.2f"|format(item.price) }}</div>
+              </div>
+            </div>
+            <div style="font-weight: 800; font-size: 1.05rem; color: var(--color-pink-600);">
+              ₹{{ "%.2f"|format(item.total) }}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Delivery Address Card -->
+    <div style="text-align: left; background: #FFFDF7; border: 1px solid var(--color-pink-100); border-radius: var(--radius-md); padding: 18px 22px; margin-bottom: 30px;">
+      <h4 style="font-weight: 800; font-size: 0.95rem; margin-bottom: 6px; color: var(--color-text-main);">
+        📍 Shipping Destination
+      </h4>
+      <p style="font-size: 0.92rem; color: var(--color-text-muted); margin: 0; line-height: 1.5;">
+        <strong>{{ order.customer_name }}</strong><br>
+        {{ order.shipping_address }}, {{ order.city }}, {{ order.state }} - {{ order.pincode }}<br>
+        Phone: {{ order.customer_phone }} | Email: {{ order.customer_email }}
+      </p>
+    </div>
+
+    <!-- Actions -->
+    <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap;">
+      <a href="{{ url_for('track_order', order=order.order_number, phone=order.customer_phone) }}" class="btn-cute-primary" style="padding: 14px 32px; font-size: 1.05rem;">
+        Track Package Live 📦
+      </a>
+      <a href="{{ url_for('shop') }}" class="btn-cute-secondary" style="padding: 14px 28px; font-size: 1rem;">
+        Continue Shopping 🧸
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

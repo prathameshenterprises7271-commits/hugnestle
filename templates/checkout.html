@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout &amp; Secure UPI Payment | HUGNESTLE{% endblock %}
+
+{% block content %}
+<div class="container" style="padding: 40px 24px 80px;">
+  <div style="text-align: center; max-width: 600px; margin: 0 auto 36px;">
+    <span class="badge-tag" style="position: static; display: inline-block; margin-bottom: 8px;">Safe Checkout</span>
+    <h1 style="font-size: 2.2rem; font-weight: 900; color: var(--color-text-main); margin-bottom: 8px;">
+      Finalize Your Cuddle Order 🎀
+    </h1>
+    <p style="color: var(--color-text-muted); font-size: 0.95rem;">
+      Enter your delivery address and pay securely using Indian UPI.
+    </p>
+  </div>
+
+  <div id="checkoutEmptyNotice" style="display: none; background: #FFF; border: 1.5px dashed var(--color-pink-200); border-radius: var(--radius-lg); padding: 50px 20px; text-align: center; max-width: 600px; margin: 0 auto;">
+    <div style="font-size: 3rem; margin-bottom: 12px;">🧸</div>
+    <h3 style="font-weight: 800; margin-bottom: 8px;">Your cart is empty!</h3>
+    <p style="color: var(--color-text-muted); margin-bottom: 20px;">Please add at least one cuddly plushie to your bag before checking out.</p>
+    <a href="{{ url_for('shop') }}" class="btn-cute-primary">Browse Plushies</a>
+  </div>
+
+  <div class="checkout-grid" id="checkoutMainContainer" style="display: grid; grid-template-columns: 1.25fr 0.85fr; gap: 36px;">
+    <!-- Left Column: Shipping & Payment Details -->
+    <div>
+      <form id="checkoutForm" onsubmit="handleCheckoutSubmit(event)">
+        <!-- Step 1: Customer Details -->
+        <div class="admin-card" style="margin-bottom: 24px;">
+          <h3 class="admin-card-title" style="margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+            <span>1️⃣</span> Contact &amp; SMS Details
+          </h3>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custName">Full Name *</label>
+              <input type="text" id="custName" class="form-control" required placeholder="e.g. Priya Sharma" value="{{ user.name if user else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custPhone">Phone Number (For SMS Tracking) *</label>
+              <input type="tel" id="custPhone" class="form-control" required placeholder="e.g. 9876543210" value="{{ user.phone if user else '' }}">
+              <small style="color: var(--color-text-muted); font-size: 0.78rem;">Order confirmation &amp; courier tracking SMS will be sent here.</small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="custEmail">Email Address *</label>
+            <input type="email" id="custEmail" class="form-control" required placeholder="e.g. priya@example.com" value="{{ user.email if user else '' }}">
+          </div>
+        </div>
+
+        <!-- Step 2: Delivery Address -->
+        <div class="admin-card" style="margin-bottom: 24px;">
+          <h3 class="admin-card-title" style="margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+            <span>2️⃣</span> Delivery Address
+          </h3>
+
+          <div class="form-group">
+            <label class="form-label" for="custAddress">Street Address / House / Apartment *</label>
+            <textarea id="custAddress" class="form-control" rows="2" required placeholder="Flat 402, Rosewood Blossom Apts, Indiranagar">{{ user.address if user else '' }}</textarea>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custCity">City *</label>
+              <input type="text" id="custCity" class="form-control" required placeholder="e.g. Bengaluru" value="{{ user.city if user else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custState">State *</label>
+              <input type="text" id="custState" class="form-control" required placeholder="e.g. Karnataka" value="{{ user.state if user else 'Karnataka' }}">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="custPincode">PIN Code *</label>
+              <input type="text" id="custPincode" class="form-control" required placeholder="e.g. 560038" value="{{ user.pincode if user else '' }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="custNotes">Gift Card Message / Notes</label>
+              <input type="text" id="custNotes" class="form-control" placeholder="Optional: Message to print on card">
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 3: Payment Method (Strictly Online UPI, No COD) -->
+        <div class="admin-card" style="margin-bottom: 24px;">
+          <h3 class="admin-card-title" style="margin-bottom: 18px; display: flex; align-items: center; gap: 8px;">
+            <span>3️⃣</span> Payment Method
+          </h3>
+
+          <div style="background: #FDF2F4; border: 2px solid var(--color-pink-400); border-radius: 12px; padding: 18px; margin-bottom: 16px; display: flex; align-items: flex-start; gap: 14px;">
+            <input type="radio" checked id="payMethodUpi" style="accent-color: var(--color-pink-600); width: 20px; height: 20px; margin-top: 2px;">
+            <div>
+              <label for="payMethodUpi" style="font-weight: 800; font-size: 1rem; color: #3E2723; display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                <span>🟢</span> Online UPI Payment (Instant Verification)
+                <span class="upi-badge-pill">Zero Extra Fees</span>
+              </label>
+              <p style="font-size: 0.85rem; color: #7E6B68; margin-top: 4px;">
+                Pay seamlessly with Google Pay, PhonePe, Paytm, BHIM, Cred, or scan the dynamic UPI QR code. Stock is reserved instantly upon payment confirmation.
+              </p>
+            </div>
+          </div>
+
+          <!-- Explicit No COD Policy Notice -->
+          <div style="background: #FFF8E1; border: 1.5px dashed #FFB300; border-radius: 12px; padding: 14px 18px; display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 1.5rem;">🚫</span>
+            <div style="font-size: 0.84rem; color: #6D4C41; font-weight: 600;">
+              <strong>NO CASH ON DELIVERY:</strong> To prevent failed deliveries and ensure express fragile packaging for teddy bears, we only accept secure online UPI payments.
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitOrder" class="btn-cute-primary" style="width: 100%; padding: 16px; font-size: 1.15rem; font-weight: 800; box-shadow: var(--shadow-lg);">
+          Proceed to UPI Online Payment ➔
+        </button>
+      </form>
+    </div>
+
+    <!-- Right Column: Order Summary & Coupon -->
+    <div>
+      <div class="admin-card" style="position: sticky; top: 90px;">
+        <h3 class="admin-card-title" style="margin-bottom: 16px;">Order Summary</h3>
+
+        <!-- Checkout Items Container -->
+        <div id="checkoutItemsList" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+          <!-- Dynamically populated from localStorage -->
+        </div>
+
+        <!-- Promo Code Box -->
+        <div style="margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px dashed var(--color-pink-200);">
+          <label class="form-label" style="font-size: 0.82rem;">Promo Coupon Code</label>
+          <div style="display: flex; gap: 8px;">
+            <input type="text" id="promoInput" placeholder="Try code: CUTEHUG10" class="form-control" style="font-size: 0.88rem; text-transform: uppercase;">
+            <button type="button" class="btn-cute-secondary" onclick="applyPromoCode()" style="padding: 8px 16px; font-size: 0.88rem;">Apply</button>
+          </div>
+          <div id="promoNotice" style="font-size: 0.8rem; font-weight: 700; margin-top: 6px;"></div>
+        </div>
+
+        <!-- Totals Breakdown -->
+        <div class="cart-summary-row">
+          <span>Subtotal</span>
+          <span id="checkoutSubtotal" style="font-weight: 700;">₹0.00</span>
+        </div>
+        <div class="cart-summary-row" id="discountRow" style="display: none; color: #2E7D32;">
+          <span>Coupon Discount (10%)</span>
+          <span id="checkoutDiscount" style="font-weight: 700;">-₹0.00</span>
+        </div>
+        <div class="cart-summary-row">
+          <span>Courier Shipping</span>
+          <span style="color: var(--color-success-text); font-weight: 700;">FREE</span>
+        </div>
+        <div class="cart-summary-row">
+          <span>Gift Packaging &amp; Ribbon</span>
+          <span style="color: var(--color-pink-600); font-weight: 700;">Complimentary</span>
+        </div>
+
+        <div class="cart-total-row">
+          <span>Total to Pay</span>
+          <span id="checkoutGrandTotal" style="color: var(--color-pink-600);">₹0.00</span>
+        </div>
+
+        <!-- Security Pill -->
+        <div style="margin-top: 20px; padding: 12px; background: #FFFDF7; border: 1px solid var(--color-pink-100); border-radius: 10px; text-align: center; font-size: 0.78rem; color: var(--color-text-muted); font-weight: 600;">
+          🔒 256-bit Encrypted UPI Gateway • Verified Stock Deduction
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentDiscount = 0.0;
+
+function renderCheckoutItems() {
+  const cart = getCart();
+  const container = document.getElementById('checkoutItemsList');
+  const mainWrap = document.getElementById('checkoutMainContainer');
+  const emptyNotice = document.getElementById('checkoutEmptyNotice');
+
+  if (!cart || cart.length === 0) {
+    if (mainWrap) mainWrap.style.display = 'none';
+    if (emptyNotice) emptyNotice.style.display = 'block';
+    return;
+  }
+
+  if (mainWrap) mainWrap.style.display = 'grid';
+  if (emptyNotice) emptyNotice.style.display = 'none';
+
+  let subtotal = 0;
+  let html = '';
+
+  cart.forEach(item => {
+    const itemTotal = item.price * item.quantity;
+    subtotal += itemTotal;
+    html += `
+      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 0; border-bottom: 1px solid #F8F9FA;">
+        <img src="${item.image}" alt="${item.name}" style="width: 50px; height: 50px; object-fit: contain; background: #FFFDF7; border-radius: 8px; border: 1px solid #FCE7EC; padding: 2px;">
+        <div style="flex: 1;">
+          <div style="font-weight: 700; font-size: 0.88rem; color: #3E2723;">${item.name}</div>
+          <div style="font-size: 0.78rem; color: #7E6B68;">Qty: ${item.quantity} × ₹${item.price.toFixed(2)}</div>
+        </div>
+        <div style="font-weight: 800; font-size: 0.9rem; color: #D81B60;">₹${itemTotal.toFixed(2)}</div>
+      </div>
+    `;
+  });
+
+  container.innerHTML = html;
+  updateTotals(subtotal);
+}
+
+function updateTotals(subtotal) {
+  const discountVal = subtotal * currentDiscount;
+  const grandTotal = Math.max(0, subtotal - discountVal);
+
+  document.getElementById('checkoutSubtotal').textContent = `₹${subtotal.toFixed(2)}`;
+  if (currentDiscount > 0) {
+    document.getElementById('discountRow').style.display = 'flex';
+    document.getElementById('checkoutDiscount').textContent = `-₹${discountVal.toFixed(2)}`;
+  } else {
+    document.getElementById('discountRow').style.display = 'none';
+  }
+  document.getElementById('checkoutGrandTotal').textContent = `₹${grandTotal.toFixed(2)}`;
+}
+
+function applyPromoCode() {
+  const code = (document.getElementById('promoInput').value || '').trim().toUpperCase();
+  const notice = document.getElementById('promoNotice');
+  const cart = getCart();
+  const subtotal = cart.reduce((acc, i) => acc + (i.price * i.quantity), 0);
+
+  if (code === 'CUTEHUG10') {
+    currentDiscount = 0.10;
+    notice.style.color = '#2E7D32';
+    notice.textContent = '🎉 Coupon CUTEHUG10 applied! 10% discount activated.';
+    updateTotals(subtotal);
+    showToast('10% Coupon Applied! 🎀', '💖');
+  } else {
+    currentDiscount = 0.0;
+    notice.style.color = '#C62828';
+    notice.textContent = 'Invalid promo code. Try "CUTEHUG10" for 10% off!';
+    updateTotals(subtotal);
+  }
+}
+
+async function handleCheckoutSubmit(e) {
+  e.preventDefault();
+  const cart = getCart();
+
+  if (!cart || cart.length === 0) {
+    showToast('Your cart is empty!', '⚠️');
+    return;
+  }
+
+  const btn = document.getElementById('btnSubmitOrder');
+  btn.disabled = true;
+  btn.textContent = 'Creating Secure UPI Order...';
+
+  const payload = {
+    items: cart,
+    customer: {
+      name: document.getElementById('custName').value.trim(),
+      phone: document.getElementById('custPhone').value.trim(),
+      email: document.getElementById('custEmail').value.trim(),
+      address: document.getElementById('custAddress').value.trim(),
+      city: document.getElementById('custCity').value.trim(),
+      state: document.getElementById('custState').value.trim(),
+      pincode: document.getElementById('custPincode').value.trim(),
+      notes: document.getElementById('custNotes').value.trim()
+    }
+  };
+
+  try {
+    const res = await fetch('/api/checkout/create-order', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+
+    const result = await res.json();
+
+    if (result.success) {
+      // Launch UPI Payment Gateway
+      window.hugnestleUPI.startPayment(result);
+    } else {
+      showToast(result.message || 'Error creating order', '❌');
+    }
+  } catch (err) {
+    console.error(err);
+    showToast('Server communication error. Please try again.', '⚠️');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Proceed to UPI Online Payment ➔';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  renderCheckoutItems();
+});
+</script>
+{% endblock %}

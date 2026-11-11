@@ -1,0 +1,231 @@
+{% extends 'base.html' %}
+
+{% block title %}HUGNESTLE | Soft Teddy Bears, Plushies &amp; Cute Gifts{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="container hero-grid">
+    <div class="hero-text-content">
+      <div class="hero-tag">
+        <span>✨</span> The Sweetest Gift of Love
+      </div>
+      <h1 class="hero-title">
+        Wrap Your Loved Ones in <span class="text-gradient">Endless Hugs.</span>
+      </h1>
+      <p class="hero-desc">
+        Welcome to HUGNESTLE! Discover cloud-soft teddy bears, lovable plush animals, and romantic gift hampers designed to spread warm smiles and pure joy.
+      </p>
+
+      <div class="hero-actions">
+        <a href="{{ url_for('shop') }}" class="btn-cute-primary">
+          Explore All Hugs 🧸
+        </a>
+        <a href="{{ url_for('shop', cat='teddy-bears') }}" class="btn-cute-secondary">
+          Classic Teddy Bears
+        </a>
+      </div>
+
+      <div class="hero-trust">
+        <div class="trust-item">
+          <span>💖</span> 100% Cotton Softness
+        </div>
+        <div class="trust-item">
+          <span>⚡</span> Instant UPI Pay
+        </div>
+        <div class="trust-item">
+          <span>📱</span> SMS Tracking
+        </div>
+      </div>
+    </div>
+
+    <!-- Hero Visual -->
+    <div class="hero-visual">
+      <div class="hero-card-main">
+        <img src="{{ url_for('static', filename='uploads/products/caramel_teddy.svg') }}" alt="Signature Caramel Teddy Bear">
+        <div class="hero-floating-badge">
+          <div class="badge-avatar">🧸</div>
+          <div>
+            <div style="font-weight: 800; font-size: 0.95rem; color: var(--color-text-main);">Signature Cuddle Bear</div>
+            <div style="font-size: 0.8rem; color: #FFB703; font-weight: 700;">★★★★★ (4.9 / 5.0)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Categories Section -->
+<section class="section" style="background: var(--color-white);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Browse Collections</div>
+      <h2 class="section-title">Explore by Category</h2>
+      <p class="section-desc">From life-size cuddle bears to cute desk companions, find the perfect hug for every moment.</p>
+    </div>
+
+    <div class="categories-grid">
+      {% for cat in categories %}
+        <a href="{{ url_for('shop', cat=cat.slug) }}" class="category-card">
+          <div class="category-icon">{{ cat.icon }}</div>
+          <div class="category-name">{{ cat.name }}</div>
+          <div class="category-desc">{{ cat.description }}</div>
+        </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Featured Products Section -->
+<section class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Handpicked Lovables</div>
+      <h2 class="section-title">Most Loved Hugs</h2>
+      <p class="section-desc">Our softest bestsellers, carefully hand-stitched and ready to be delivered.</p>
+    </div>
+
+    <div class="products-grid">
+      {% for product in featured_products %}
+        <div class="product-card">
+          <div class="product-thumb-wrap">
+            {% if product.tag %}
+              <span class="badge-tag">{{ product.tag }}</span>
+            {% endif %}
+
+            {% if product.stock == 0 %}
+              <span class="badge-stock badge-out-of-stock">● Out of Stock</span>
+            {% elif product.stock <= 5 %}
+              <span class="badge-stock badge-low-stock">● Only {{ product.stock }} Left</span>
+            {% else %}
+              <span class="badge-stock badge-in-stock">● In Stock</span>
+            {% endif %}
+
+            <a href="{{ url_for('product_detail', slug=product.slug) }}">
+              <img src="{{ product.main_image }}" alt="{{ product.name }}">
+            </a>
+          </div>
+
+          <div class="product-body">
+            <div class="product-cat">{{ product.category_name or 'Plushie' }}</div>
+            <h3 class="product-title">
+              <a href="{{ url_for('product_detail', slug=product.slug) }}">{{ product.name }}</a>
+            </h3>
+
+            <div class="product-rating">
+              <span class="rating-stars">★★★★★</span>
+              <span class="rating-count">({{ product.review_count }})</span>
+            </div>
+
+            <div class="product-footer">
+              <div class="product-price-box">
+                <span class="product-price">₹{{ "%.2f"|format(product.price) }}</span>
+                {% if product.original_price and product.original_price > product.price %}
+                  <span class="product-original-price">₹{{ "%.2f"|format(product.original_price) }}</span>
+                {% endif %}
+              </div>
+
+              {% if product.stock > 0 %}
+                <button class="btn-add-cart" onclick="addToCart({
+                  id: {{ product.id }},
+                  name: '{{ product.name|replace("'", "\\'") }}',
+                  slug: '{{ product.slug }}',
+                  price: {{ product.price }},
+                  main_image: '{{ product.main_image }}',
+                  stock: {{ product.stock }}
+                })">
+                  <span>+</span> Add to Bag
+                </button>
+              {% else %}
+                <button class="btn-add-cart" disabled title="This plushie is currently out of stock.">
+                  Sold Out
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+
+    <div style="text-align: center; margin-top: 45px;">
+      <a href="{{ url_for('shop') }}" class="btn-cute-secondary" style="font-size: 1.05rem; padding: 12px 32px;">
+        View All Soft Toys &amp; Gifts ➔
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Value Proposition: Why Choose Hugnestle -->
+<section class="section" style="background: linear-gradient(180deg, var(--color-white) 0%, var(--color-cream-200) 100%);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">The Hugnestle Promise</div>
+      <h2 class="section-title">Crafted with Pure Love</h2>
+      <p class="section-desc">Every single plushie is checked for softness, safety, and cuddle-worthiness.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px;">
+      <div style="background: #FFF; padding: 28px 24px; border-radius: var(--radius-lg); border: 1.5px solid var(--color-pink-100); text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 14px;">☁️</div>
+        <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 8px;">100% Anti-Allergic</h4>
+        <p style="font-size: 0.9rem; color: var(--color-text-muted);">High-density virgin poly-pearl cotton, gentle on sensitive skin and safe for babies and pets.</p>
+      </div>
+
+      <div style="background: #FFF; padding: 28px 24px; border-radius: var(--radius-lg); border: 1.5px solid var(--color-pink-100); text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 14px;">🎁</div>
+        <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 8px;">Gift-Ready Ribbon Box</h4>
+        <p style="font-size: 0.9rem; color: var(--color-text-muted);">Tied with a silky satin bow, fairy lights, and your custom handwritten greeting message.</p>
+      </div>
+
+      <div style="background: #FFF; padding: 28px 24px; border-radius: var(--radius-lg); border: 1.5px solid var(--color-pink-100); text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 14px;">⚡</div>
+        <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 8px;">Instant UPI Payments</h4>
+        <p style="font-size: 0.9rem; color: var(--color-text-muted);">Fast, safe and hassle-free UPI online payments with automatic verified confirmation.</p>
+      </div>
+
+      <div style="background: #FFF; padding: 28px 24px; border-radius: var(--radius-lg); border: 1.5px solid var(--color-pink-100); text-align: center;">
+        <div style="font-size: 2.5rem; margin-bottom: 14px;">📱</div>
+        <h4 style="font-weight: 800; font-size: 1.1rem; margin-bottom: 8px;">Instant SMS Updates</h4>
+        <p style="font-size: 0.9rem; color: var(--color-text-muted);">Receive direct mobile SMS alerts from hand-packing to door dispatch and delivery.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Customer Reviews Section -->
+<section class="section" style="background: var(--color-white);">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-tag">Loved By 20,000+ Customers</div>
+      <h2 class="section-title">Sweet Words from Huggers</h2>
+      <p class="section-desc">See why customers across India choose Hugnestle for special occasions and cozy cuddles.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+      <div style="background: var(--color-pink-50); border: 1px solid var(--color-pink-200); border-radius: var(--radius-lg); padding: 28px;">
+        <div style="color: #FFB703; font-size: 1.1rem; margin-bottom: 10px;">★★★★★</div>
+        <p style="font-style: italic; color: var(--color-text-main); font-size: 0.95rem; margin-bottom: 16px;">
+          "I ordered the Caramel Teddy Bear for my best friend's birthday. It is unbelievably soft! The packaging had a pink ribbon and handwritten note. She cried happy tears!"
+        </p>
+        <div style="font-weight: 800; font-size: 0.9rem; color: var(--color-pink-700);">— Ananya Roy, Mumbai</div>
+      </div>
+
+      <div style="background: var(--color-pink-50); border: 1px solid var(--color-pink-200); border-radius: var(--radius-lg); padding: 28px;">
+        <div style="color: #FFB703; font-size: 1.1rem; margin-bottom: 10px;">★★★★★</div>
+        <p style="font-style: italic; color: var(--color-text-main); font-size: 0.95rem; margin-bottom: 16px;">
+          "The UPI payment was super smooth and verified within seconds. I immediately got an SMS confirmation with a tracking link. Delivery took just 2 days. 10/10 recommend Hugnestle!"
+        </p>
+        <div style="font-weight: 800; font-size: 0.9rem; color: var(--color-pink-700);">— Rohan Mehta, Pune</div>
+      </div>
+
+      <div style="background: var(--color-pink-50); border: 1px solid var(--color-pink-200); border-radius: var(--radius-lg); padding: 28px;">
+        <div style="color: #FFB703; font-size: 1.1rem; margin-bottom: 10px;">★★★★★</div>
+        <p style="font-style: italic; color: var(--color-text-main); font-size: 0.95rem; margin-bottom: 16px;">
+          "The Bobo Panda plush is so chubby and squishy! My little sister won't go to sleep without it now. High quality material that doesn't shed or lose shape."
+        </p>
+        <div style="font-weight: 800; font-size: 0.9rem; color: var(--color-pink-700);">— Sneha Pillai, Bengaluru</div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,76 @@
+{% extends 'admin/base_admin.html' %}
+
+{% block title %}SMS Notifications Log | HUGNESTLE Admin{% endblock %}
+{% block page_title %}Customer SMS Notification Logs{% endblock %}
+
+{% block admin_content %}
+<div class="admin-card">
+  <div class="admin-card-header">
+    <div>
+      <h3 class="admin-card-title">Dispatched Customer SMS Logs ({{ logs|length }})</h3>
+      <p style="font-size: 0.85rem; color: var(--admin-muted); margin-top: 2px;">
+        Real-time audit log of all order confirmations and tracking updates sent to customer mobile phones.
+      </p>
+    </div>
+
+    <div>
+      <span class="upi-badge-pill">
+        Active Provider: <strong>{{ Config.SMS_PROVIDER if Config else 'MOCK' }}</strong>
+      </span>
+    </div>
+  </div>
+
+  {% if logs %}
+    <div class="admin-table-wrap">
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>Order #</th>
+            <th>Customer</th>
+            <th>Phone</th>
+            <th>Message Text</th>
+            <th>Status</th>
+            <th>Gateway</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+            <tr>
+              <td style="font-size: 0.8rem; color: var(--admin-muted); white-space: nowrap;">
+                {{ log.created_at }}
+              </td>
+              <td>
+                {% if log.order_number %}
+                  <a href="{{ url_for('track_order', order=log.order_number, phone=log.phone) }}" target="_blank" style="font-weight: 800; color: var(--color-pink-600);">
+                    #{{ log.order_number }}
+                  </a>
+                {% else %}
+                  <span style="color: var(--admin-muted);">-</span>
+                {% endif %}
+              </td>
+              <td><strong>{{ log.customer_name or 'Friend' }}</strong></td>
+              <td style="white-space: nowrap;">+91 {{ log.phone }}</td>
+              <td style="max-width: 320px; font-size: 0.85rem; color: #334155; line-height: 1.4;">
+                {{ log.message }}
+              </td>
+              <td>
+                <span class="status-pill status-in-stock" style="font-size: 0.72rem;">
+                  ✓ {{ log.status }}
+                </span>
+              </td>
+              <td style="font-size: 0.75rem; color: var(--admin-muted); font-weight: 700;">
+                {{ log.provider }}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div style="text-align: center; padding: 40px 20px; color: var(--admin-muted);">
+      No SMS logs dispatched yet. Place an order or update an order status to generate notification logs.
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

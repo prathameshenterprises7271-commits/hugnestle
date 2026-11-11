@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ product.name }} | HUGNESTLE Plushies{% endblock %}
+
+{% block content %}
+<div class="container">
+  <!-- Breadcrumb Navigation -->
+  <div style="padding: 20px 0; font-size: 0.88rem; color: var(--color-text-muted); display: flex; align-items: center; gap: 8px;">
+    <a href="{{ url_for('index') }}" style="color: var(--color-text-muted);">Home</a>
+    <span>/</span>
+    <a href="{{ url_for('shop') }}" style="color: var(--color-text-muted);">Shop</a>
+    <span>/</span>
+    <a href="{{ url_for('shop', cat=product.category_slug) }}" style="color: var(--color-pink-600); font-weight: 700;">{{ product.category_name }}</a>
+    <span>/</span>
+    <span style="font-weight: 700; color: var(--color-text-main);">{{ product.name }}</span>
+  </div>
+
+  <div class="product-detail-grid">
+    <!-- Gallery Section -->
+    <div class="gallery-container">
+      <div class="gallery-main-view">
+        <img id="mainGalleryImage" src="{{ gallery[0] if gallery else product.main_image }}" alt="{{ product.name }}">
+      </div>
+
+      {% if gallery and gallery|length > 1 %}
+        <div class="gallery-thumbs">
+          {% for img_url in gallery %}
+            <div class="thumb-item {% if loop.first %}active{% endif %}" onclick="
+              document.getElementById('mainGalleryImage').src = '{{ img_url }}';
+              document.querySelectorAll('.thumb-item').forEach(el => el.classList.remove('active'));
+              this.classList.add('active');
+            ">
+              <img src="{{ img_url }}" alt="Thumbnail {{ loop.index }}">
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Product Info Section -->
+    <div class="product-info-panel">
+      <div class="product-info-cat">{{ product.category_name or 'Cute Plushie' }}</div>
+      <h1 class="product-info-title">{{ product.name }}</h1>
+
+      <div class="product-rating">
+        <span class="rating-stars">★★★★★</span>
+        <span style="font-weight: 700; color: var(--color-text-main); font-size: 0.9rem;">{{ product.rating }}</span>
+        <span class="rating-count">({{ product.review_count }} verified hugs)</span>
+      </div>
+
+      <div class="product-info-price-box">
+        <span class="product-info-price">₹{{ "%.2f"|format(product.price) }}</span>
+        {% if product.original_price and product.original_price > product.price %}
+          <span class="product-info-original">₹{{ "%.2f"|format(product.original_price) }}</span>
+          {% set savings = product.original_price - product.price %}
+          {% set discount_pct = ((savings / product.original_price) * 100)|round|int %}
+          <span class="product-info-discount">SAVE {{ discount_pct }}% (₹{{ "%.0f"|format(savings) }})</span>
+        {% endif %}
+      </div>
+
+      <!-- Stock Status Indicator -->
+      <div class="product-stock-status">
+        {% if product.stock == 0 %}
+          <span class="status-pill status-out-of-stock" style="font-size: 0.85rem; padding: 6px 14px;">
+            ● Out of Stock — We are hand-stitching more!
+          </span>
+        {% elif product.stock <= 5 %}
+          <span class="status-pill status-low-stock" style="font-size: 0.85rem; padding: 6px 14px;">
+            ● Only {{ product.stock }} left in stock! Order soon.
+          </span>
+        {% else %}
+          <span class="status-pill status-in-stock" style="font-size: 0.85rem; padding: 6px 14px;">
+            ● In Stock &amp; Ready to Ship ({{ product.stock }} available)
+          </span>
+        {% endif %}
+      </div>
+
+      <p class="product-info-desc">
+        {{ product.description }}
+      </p>
+
+      <!-- Specifications -->
+      <div class="product-specs">
+        <div class="spec-item">
+          <span class="spec-title">Dimensions</span>
+          <span class="spec-val">{{ product.dimensions or 'Approx. 40 cm' }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-title">Material</span>
+          <span class="spec-val">{{ product.material or '100% Virgin Poly-Pearl Cotton' }}</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-title">Cuddle Rating</span>
+          <span class="spec-val">Ultra Fluffy (10/10)</span>
+        </div>
+        <div class="spec-item">
+          <span class="spec-title">Care &amp; Wash</span>
+          <span class="spec-val">Gentle Surface Hand Wash</span>
+        </div>
+      </div>
+
+      <!-- Quantity Selector & Actions -->
+      {% if product.stock > 0 %}
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; flex-wrap: wrap;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <label style="font-weight: 700; font-size: 0.9rem;">Quantity:</label>
+            <div class="cart-qty-ctrl" style="padding: 6px 12px;">
+              <button class="qty-btn" type="button" onclick="
+                const q = document.getElementById('productQtyInput');
+                if (parseInt(q.value) > 1) q.value = parseInt(q.value) - 1;
+              ">-</button>
+              <input type="text" id="productQtyInput" value="1" readonly style="width: 36px; text-align: center; border: none; background: transparent; font-weight: 800; font-size: 1rem;">
+              <button class="qty-btn" type="button" onclick="
+                const q = document.getElementById('productQtyInput');
+                if (parseInt(q.value) < {{ product.stock }}) q.value = parseInt(q.value) + 1;
+                else showToast('Cannot exceed available stock of {{ product.stock }}', '⚠️');
+              ">+</button>
+            </div>
+          </div>
+
+          <button class="btn-cute-primary" style="flex: 1; padding: 14px 28px; font-size: 1.05rem;" onclick="
+            const qty = parseInt(document.getElementById('productQtyInput').value) || 1;
+            addToCart({
+              id: {{ product.id }},
+              name: '{{ product.name|replace("'", "\\'") }}',
+              slug: '{{ product.slug }}',
+              price: {{ product.price }},
+              main_image: '{{ product.main_image }}',
+              stock: {{ product.stock }}
+            }, qty);
+          ">
+            <span>🧸</span> Add to Bag
+          </button>
+        </div>
+
+        <button class="btn-cute-secondary" style="width: 100%; padding: 14px; font-size: 1rem; margin-bottom: 24px;" onclick="
+          const qty = parseInt(document.getElementById('productQtyInput').value) || 1;
+          addToCart({
+            id: {{ product.id }},
+            name: '{{ product.name|replace("'", "\\'") }}',
+            slug: '{{ product.slug }}',
+            price: {{ product.price }},
+            main_image: '{{ product.main_image }}',
+            stock: {{ product.stock }}
+          }, qty);
+          window.location.href = '{{ url_for('checkout') }}';
+        ">
+          ⚡ Buy Now with Instant UPI Checkout
+        </button>
+      {% else %}
+        <div style="background: var(--color-danger-bg); border: 1.5px solid #FFCDD2; border-radius: var(--radius-md); padding: 20px; text-align: center; margin-bottom: 24px;">
+          <h4 style="font-weight: 800; color: var(--color-danger-text); margin-bottom: 6px;">Currently Out of Stock</h4>
+          <p style="font-size: 0.88rem; color: #7E6B68;">
+            This plushie is temporarily sold out due to high cuddle demand. Please check back soon or browse other available plushies!
+          </p>
+        </div>
+        <a href="{{ url_for('shop') }}" class="btn-cute-primary" style="width: 100%; text-align: center;">
+          Browse Available Soft Toys ➔
+        </a>
+      {% endif %}
+
+      <!-- Trust Features -->
+      <div style="background: var(--color-pink-50); border: 1px solid var(--color-pink-200); border-radius: var(--radius-md); padding: 16px; display: flex; flex-direction: column; gap: 10px; font-size: 0.85rem; font-weight: 600; color: var(--color-pink-700);">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>🔒</span> Strictly Verified UPI Online Payments (No COD)
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>📱</span> SMS Tracking link dispatched immediately upon order confirmation
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>🎀</span> Free luxury ribbon gift packing on orders above ₹999
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Related Products -->
+  {% if related_products %}
+    <section class="section" style="padding-top: 20px;">
+      <div class="section-header">
+        <div class="section-tag">More To Love</div>
+        <h2 class="section-title">You Might Also Adore</h2>
+      </div>
+
+      <div class="products-grid">
+        {% for rp in related_products %}
+          <div class="product-card">
+            <div class="product-thumb-wrap">
+              {% if rp.stock == 0 %}
+                <span class="badge-stock badge-out-of-stock">● Out of Stock</span>
+              {% else %}
+                <span class="badge-stock badge-in-stock">● In Stock</span>
+              {% endif %}
+              <a href="{{ url_for('product_detail', slug=rp.slug) }}">
+                <img src="{{ rp.main_image }}" alt="{{ rp.name }}">
+              </a>
+            </div>
+            <div class="product-body">
+              <h3 class="product-title">
+                <a href="{{ url_for('product_detail', slug=rp.slug) }}">{{ rp.name }}</a>
+              </h3>
+              <div class="product-footer">
+                <span class="product-price">₹{{ "%.2f"|format(rp.price) }}</span>
+                <a href="{{ url_for('product_detail', slug=rp.slug) }}" class="btn-cute-secondary" style="padding: 6px 14px; font-size: 0.82rem;">
+                  View Hug
+                </a>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}

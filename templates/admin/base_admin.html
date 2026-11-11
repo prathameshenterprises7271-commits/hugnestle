@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Admin Panel | HUGNESTLE{% endblock %}</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Core & Admin CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/admin.css') }}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="admin-body">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-brand">
+      <a href="{{ url_for('admin_dashboard') }}" style="display: flex; align-items: center; gap: 8px;">
+        <img src="{{ url_for('static', filename='images/logo.svg') }}" alt="HUGNESTLE">
+      </a>
+      <span class="admin-badge">Owner</span>
+    </div>
+
+    <ul class="admin-nav">
+      <li class="admin-nav-item">
+        <a href="{{ url_for('admin_dashboard') }}" class="{% if request.endpoint == 'admin_dashboard' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+          Dashboard
+        </a>
+      </li>
+      <li class="admin-nav-item">
+        <a href="{{ url_for('admin_products') }}" class="{% if request.endpoint == 'admin_products' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+          Products &amp; Stock
+        </a>
+      </li>
+      <li class="admin-nav-item">
+        <a href="{{ url_for('admin_orders') }}" class="{% if request.endpoint == 'admin_orders' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
+          Customer Orders
+        </a>
+      </li>
+      <li class="admin-nav-item">
+        <a href="{{ url_for('admin_sms_logs') }}" class="{% if request.endpoint == 'admin_sms_logs' %}active{% endif %}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          SMS Notifications
+        </a>
+      </li>
+      <li class="admin-nav-item" style="margin-top: 20px; border-top: 1px solid var(--admin-border); padding-top: 10px;">
+        <a href="{{ url_for('index') }}" target="_blank">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          View Live Store ↗
+        </a>
+      </li>
+    </ul>
+
+    <div class="admin-user-profile">
+      <div style="font-size: 0.82rem;">
+        <div style="font-weight: 800; color: #1A202C;">Website Owner</div>
+        <div style="color: var(--admin-muted); font-size: 0.75rem;">admin@hugnestle.in</div>
+      </div>
+      <a href="{{ url_for('admin_logout') }}" title="Sign Out" style="color: #E53E3E;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main View Area -->
+  <div class="admin-main">
+    <header class="admin-topbar">
+      <div class="admin-topbar-left">
+        <button class="admin-menu-toggle" onclick="toggleAdminSidebar()" aria-label="Toggle Menu">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <h1 class="admin-page-title">{% block page_title %}Admin Control Panel{% endblock %}</h1>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="upi-badge-pill" style="font-size: 0.8rem;">
+          UPI Payment: <strong>{{ PAYMENT_MODE|upper }}</strong>
+        </span>
+      </div>
+    </header>
+
+    <!-- Flash Messages inside Admin -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div style="padding: 16px 28px 0;">
+          {% for category, msg in messages %}
+            <div style="padding: 12px 18px; border-radius: 10px; margin-bottom: 8px; font-weight: 700; font-size: 0.9rem;
+              {% if category == 'success' %}background: #DEF7EC; color: #03543F;
+              {% elif category == 'danger' %}background: #FDE8E8; color: #9B1C1C;
+              {% else %}background: #FEF08A; color: #713F12;{% endif %}">
+              {{ msg }}
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <div class="admin-content-area">
+      {% block admin_content %}{% endblock %}
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
