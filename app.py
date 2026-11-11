@@ -20,11 +20,23 @@ from payments import (
 )
 from sms import send_sms, send_order_status_update_sms
 
-app = Flask(__name__)
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+
+app = Flask(
+    __name__,
+    static_folder=os.path.join(BASE_DIR, 'static'),
+    static_url_path='/static',
+    template_folder=os.path.join(BASE_DIR, 'templates')
+)
 app.config.from_object(Config)
 
 # Ensure upload directory exists
 os.makedirs(Config.UPLOAD_FOLDER, exist_ok=True)
+
+# Explicit fallback static file serving
+@app.route('/static/<path:filename>', endpoint='custom_static_serve')
+def custom_static_serve(filename):
+    return send_from_directory(app.static_folder, filename)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in Config.ALLOWED_EXTENSIONS
